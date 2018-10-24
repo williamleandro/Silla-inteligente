@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">SillaInteligente</string>
+    <string name="btn_blue">Conectar Bluetooth</string>
+    <string name="btn_sensores">Sensores</string>
+    <string name="btn_activarBT">Activar Bluetooth</string>
+    <string name="btn_buscarDevice">Buscar Dispositivos</string>
+    <string name="btn_verEmparejadosDevice">Dispositivos Emparejados</string>
+</resources>
