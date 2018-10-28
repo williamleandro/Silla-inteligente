@@ -3,15 +3,12 @@ package com.proyecto.arduinos.sillainteligente;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import com.beardedhen.androidbootstrap.BootstrapButton;
 
 public class MainActivity extends AppCompatActivity {
     private BootstrapButton btnBluetooth;
-
-    private static final String TAG = "Main Activity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,13 +27,10 @@ public class MainActivity extends AppCompatActivity {
     private View.OnClickListener btnHabilitarBluetooth = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            //Toast.makeText(getApplicationContext(), "Iniciando Activity BT", Toast.LENGTH_LONG).show();
             Intent intent = new Intent(getApplicationContext(), ConectarBluetoothActivity.class);
             startActivity(intent);
         }
     };
 
-    private void printLog(String mensaje) {
-        Log.d(this.TAG, mensaje);
-    }
-
-}
+   }

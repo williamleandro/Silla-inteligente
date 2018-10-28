@@ -21,5 +21,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tvState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/bootstrap_brand_danger" />
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.TextView;
 import java.util.List;
 
@@ -52,6 +51,7 @@ public class DeviceListAdapter extends BaseAdapter {
 
             holder.tvDeviceName = convertView.findViewById(R.id.tvDeviceName);
             holder.tvDeviceAddress = convertView.findViewById(R.id.tvDeviceAddress);
+            holder.tvState = convertView.findViewById(R.id.tvState);
 
             convertView.setTag(holder);
         } else {
@@ -62,6 +62,7 @@ public class DeviceListAdapter extends BaseAdapter {
 
         holder.tvDeviceName.setText(device.getName());
         holder.tvDeviceAddress.setText(device.getAddress());
+        holder.tvState.setText((device.getBondState() == BluetoothDevice.BOND_BONDED)? "Vinculado":"Desvinculado");
         return convertView;
     }
 
@@ -72,6 +73,6 @@ public class DeviceListAdapter extends BaseAdapter {
     static class ViewHolder {
         TextView tvDeviceName;
         TextView tvDeviceAddress;
-        Button emparejar;
+        TextView tvState;
     }
 }

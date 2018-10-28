@@ -13,8 +13,8 @@ import android.content.IntentFilter;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 
 import com.beardedhen.androidbootstrap.BootstrapButton;
@@ -69,7 +69,7 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
         this.adaptadorBT = BluetoothAdapter.getDefaultAdapter();
 
         if(this.adaptadorBT == null) {
-            printLog("El dispositivo no cuenta con servicio Bluetooth.");
+            Toast.makeText(getApplicationContext(), "El dispositivo no cuenta con Bluetooth", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -84,18 +84,6 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
         filterBusqueda.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         filterBusqueda.addAction(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mBroadcastReceiver, filterBusqueda);
-    }
-
-    @Override
-    protected void onResume() {
-        Intent intent = getIntent();
-        Bundle extras = intent.getExtras();
-        this.direccionMAC = extras!=null? extras.getString("MacBluetooth"):null;
-
-        if(this.direccionMAC != null) {
-            printLog(this.direccionMAC);
-        }
-        super.onResume();
     }
 
     @Override
@@ -114,20 +102,6 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
                 adaptadorBT.cancelDiscovery();
             }
         }
-    }
-
-    @Override
-    protected void onStop() {
-        Intent data = new Intent();
-        data.putExtra("MacBluetooth", direccionMAC);
-
-        if(getParent() == null) {
-            setResult(Activity.RESULT_OK, data);
-        } else {
-            getParent().setResult(Activity.RESULT_OK, data);
-        }
-
-        super.onStop();
     }
 
     private View.OnClickListener btnActivarBluetooth = new View.OnClickListener() {
@@ -157,12 +131,15 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                         MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
                 if (adaptadorBT.isDiscovering()) {
-                    printLog("El dispositivo ya se encuentra en busqueda.");
+                    Toast.makeText(getApplicationContext(),
+                            "El dispositivo ya se encuentra en búsqueda.", Toast.LENGTH_SHORT).show();
                 } else {
                     if (adaptadorBT.startDiscovery()) {
-                        printLog("Buscando Dispositivos.");
+                        Toast.makeText(getApplicationContext(),
+                                "Buscando dispositivos.", Toast.LENGTH_SHORT).show();
                     } else {
-                        printLog("Error al buscar un dispositivos.");
+                        Toast.makeText(getApplicationContext(),
+                                "Error en la búsqueda.", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -193,18 +170,15 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
                 switch (accion) {
                     case BluetoothAdapter.ACTION_DISCOVERY_STARTED:
                         mProgressDlg.show();
-                        printLog("Busqueda Iniciada.");
                         break;
                     case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
                         mProgressDlg.dismiss();
-                        printLog("Busqueda Finalizada.");
                         Intent newIntent = new Intent(ConectarBluetoothActivity.this, DeviceListActivity.class);
                         newIntent.putParcelableArrayListExtra("listaDevice", arrayDispositivos);
                         startActivityForResult(newIntent, 2);
                         break;
                     case BluetoothDevice.ACTION_FOUND:
                         BluetoothDevice dispositivo = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                        printLog("Dispositivo Encontrado." + dispositivo.getName());
                         arrayDispositivos.add(dispositivo);
                         break;
                 }
@@ -215,13 +189,7 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
         @Override
         public void onClick(DialogInterface dialog, int which) {
             dialog.dismiss();
-
             adaptadorBT.cancelDiscovery();
         }
     };
-
-    private void printLog(String mensaje) {
-        Log.d(this.TAG, mensaje);
-    }
-
 }
