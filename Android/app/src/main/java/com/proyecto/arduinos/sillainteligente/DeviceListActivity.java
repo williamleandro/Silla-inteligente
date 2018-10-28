@@ -20,6 +20,7 @@ public class DeviceListActivity extends AppCompatActivity {
     private DeviceListAdapter mAdapter;
     private ArrayList<BluetoothDevice> mDeviceList;
     private int posicionListBluethoot;
+    private String direccionMAC = null;
 
     private static final String TAG = "DeviceList Activity";
 
@@ -33,7 +34,6 @@ public class DeviceListActivity extends AppCompatActivity {
 
         this.mAdapter = new DeviceListAdapter(this);
         this.mAdapter.setData(mDeviceList);
-      //  this.mAdapter.setListener(lstAccionEmparejar);
 
         this.mListView.setAdapter(this.mAdapter);
         this.mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -59,19 +59,26 @@ public class DeviceListActivity extends AppCompatActivity {
 
                 if (state == BluetoothDevice.BOND_BONDED && prevState == BluetoothDevice.BOND_BONDING) {
                     printLog("Emparejado");
+
+                    Intent data = new Intent(DeviceListActivity.this, ControlSensoresActivity.class);
+                    data.putExtra("direccionMAC", direccionMAC);
+                    startActivity(data);
+
                 } else {
                     printLog("No emparejado");
                 }
+                mAdapter.notifyDataSetChanged();
             }
         }
     };
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         unregisterReceiver(mPairReceiver);
         this.mDeviceList = null;
         this.mAdapter = null;
+
+        super.onDestroy();
     }
 
     public void printLog(String mensaje) {
@@ -81,6 +88,7 @@ public class DeviceListActivity extends AppCompatActivity {
     public void emparejar(int posicion) {
         this.posicionListBluethoot = posicion;
         BluetoothDevice device = mDeviceList.get(posicionListBluethoot);
+        this.direccionMAC = device.getAddress();
 
         if(device.getBondState() == BluetoothDevice.BOND_BONDED) {
             desemparejarDispositivo(device);
@@ -94,6 +102,7 @@ public class DeviceListActivity extends AppCompatActivity {
         try {
             Method method = device.getClass().getMethod("createBond", (Class[]) null);
             method.invoke(device, (Object[]) null);
+
         } catch (Exception e) {
             e.printStackTrace();
         }

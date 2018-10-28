@@ -10,22 +10,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.DataSetObserver;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ListAdapter;
-import android.widget.ListView;
+
 
 import com.beardedhen.androidbootstrap.BootstrapButton;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Set;
 
 public class ConectarBluetoothActivity extends AppCompatActivity {
@@ -37,6 +31,7 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
     int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
     private Activity activity;
     private ProgressDialog mProgressDlg;
+    private String direccionMAC;
 
     private static final String TAG = "Bluetooth Activity";
 
@@ -92,6 +87,18 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        this.direccionMAC = extras!=null? extras.getString("MacBluetooth"):null;
+
+        if(this.direccionMAC != null) {
+            printLog(this.direccionMAC);
+        }
+        super.onResume();
+    }
+
+    @Override
     protected void onDestroy() {
         unregisterReceiver(mBroadcastReceiver);
         this.arrayDispositivos = null;
@@ -107,6 +114,20 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
                 adaptadorBT.cancelDiscovery();
             }
         }
+    }
+
+    @Override
+    protected void onStop() {
+        Intent data = new Intent();
+        data.putExtra("MacBluetooth", direccionMAC);
+
+        if(getParent() == null) {
+            setResult(Activity.RESULT_OK, data);
+        } else {
+            getParent().setResult(Activity.RESULT_OK, data);
+        }
+
+        super.onStop();
     }
 
     private View.OnClickListener btnActivarBluetooth = new View.OnClickListener() {
@@ -158,10 +179,8 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
                 list.addAll(pairedDevices);
 
                 Intent intent = new Intent(ConectarBluetoothActivity.this, DeviceListActivity.class);
-
                 intent.putParcelableArrayListExtra("listaDevice", list);
-
-                startActivity(intent);
+                startActivityForResult(intent, 2);
             }
         }
     };
@@ -181,7 +200,7 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
                         printLog("Busqueda Finalizada.");
                         Intent newIntent = new Intent(ConectarBluetoothActivity.this, DeviceListActivity.class);
                         newIntent.putParcelableArrayListExtra("listaDevice", arrayDispositivos);
-                        startActivity(newIntent);
+                        startActivityForResult(newIntent, 2);
                         break;
                     case BluetoothDevice.ACTION_FOUND:
                         BluetoothDevice dispositivo = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
@@ -204,6 +223,5 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
     private void printLog(String mensaje) {
         Log.d(this.TAG, mensaje);
     }
-
 
 }
