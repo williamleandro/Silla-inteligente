@@ -2,6 +2,7 @@ package com.proyecto.arduinos.sillainteligente;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,7 +63,16 @@ public class DeviceListAdapter extends BaseAdapter {
 
         holder.tvDeviceName.setText(device.getName());
         holder.tvDeviceAddress.setText(device.getAddress());
-        holder.tvState.setText((device.getBondState() == BluetoothDevice.BOND_BONDED)? "Vinculado":"Desvinculado");
+
+        int estadoDispositivo = device.getBondState();
+
+        holder.tvState.setText((estadoDispositivo == BluetoothDevice.BOND_BONDED)? "Vinculado":"Desvinculado");
+
+        if(estadoDispositivo == BluetoothDevice.BOND_BONDED) {
+            holder.tvState.setTextColor(Color.GREEN);
+        }
+
+
         return convertView;
     }
 

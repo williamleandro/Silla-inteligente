@@ -2,6 +2,7 @@ package com.proyecto.arduinos.sillainteligente;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -22,6 +23,10 @@ import com.beardedhen.androidbootstrap.BootstrapButton;
 import java.util.ArrayList;
 import java.util.Set;
 
+import dmax.dialog.SpotsDialog;
+
+import static dmax.dialog.SpotsDialog.*;
+
 public class ConectarBluetoothActivity extends AppCompatActivity {
     private BootstrapButton btnActivarBT;
     private BootstrapButton btnBuscarDispositivosBT;
@@ -30,7 +35,8 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
     private Set<BluetoothDevice> setVinculados;
     int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
     private Activity activity;
-    private ProgressDialog mProgressDlg;
+    // private ProgressDialog mProgressDlg;
+    private AlertDialog mProgressDlg;
     private String direccionMAC;
 
     private static final String TAG = "Bluetooth Activity";
@@ -46,11 +52,16 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
 
         this.activity = this;
 
+        this.mProgressDlg = new SpotsDialog(ConectarBluetoothActivity.this, R.style.Custom);
+        this.mProgressDlg.setCancelable(false);
+        this.mProgressDlg.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancelar", btnCancelarDialogListener);
+
+        /*
         this.mProgressDlg = new ProgressDialog(this);
         this.mProgressDlg.setMessage("Buscando dispositivos...");
         this.mProgressDlg.setCancelable(false);
         mProgressDlg.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancelar", btnCancelarDialogListener);
-
+        */
 
         this.btnActivarBT = findViewById(R.id.btnHabilitar);
         this.btnActivarBT.setOnClickListener(btnActivarBluetooth);
@@ -135,8 +146,8 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
                             "El dispositivo ya se encuentra en búsqueda.", Toast.LENGTH_SHORT).show();
                 } else {
                     if (adaptadorBT.startDiscovery()) {
-                        Toast.makeText(getApplicationContext(),
-                                "Buscando dispositivos.", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(),
+                           //     "Buscando dispositivos.", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getApplicationContext(),
                                 "Error en la búsqueda.", Toast.LENGTH_SHORT).show();

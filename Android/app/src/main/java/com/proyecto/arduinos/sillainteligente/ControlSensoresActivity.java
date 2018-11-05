@@ -81,12 +81,13 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_control_sensores);
 
+        //Vinculación textView de la vista y los Objetos.
         this.tvTemperatura = findViewById(R.id.tvTemperaturaInfo);
         this.tvHumedad = findViewById(R.id.tvHumedadInfo);
         this.tvDistancia = findViewById(R.id.tvProximidadInfo);
         this.tvLumninosidad = findViewById(R.id.tvLuminosidadInfo);
 
-        this.bluetoothIn = HandlerMsg();
+        this.bluetoothIn = HandlerMsg(); //Handler
 
         this.sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         this.adaptador = BluetoothAdapter.getDefaultAdapter();
@@ -95,6 +96,7 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         this.sensorGiroscopio = this.sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         this.sensorProximidad = this.sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
 
+        //Inicialización atributos auxiliares
         this.aceleracionAnterior = SensorManager.GRAVITY_EARTH;
         this.aceleracionValor = SensorManager.GRAVITY_EARTH;
         this.shake = 0.00f;
@@ -103,39 +105,44 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
     @Override
     protected void onResume() {
         super.onResume();
+
+        //Obtengo mediante un Intent la dirección del dispositivo.
         Intent intent = getIntent();
         Bundle data = intent.getExtras();
-
         this.direccionMAC = data!=null? data.getString("direccionMAC"):null;
         this.dispositivo = adaptador.getRemoteDevice(this.direccionMAC);
 
         try {
-            this.socketBT = crearSocketBluetooth(this.dispositivo);
+            this.socketBT = crearSocketBluetooth(this.dispositivo); // Creo Socket
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         try {
-            this.socketBT.connect();
+            this.socketBT.connect();    //Conecto Socket
         } catch (IOException e) {
             try {
-                this.socketBT.close();
+                this.socketBT.close();  //Cierro Socket
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
         }
 
+        // Creo Hilos de entrada y salida.
         this.hiloEntrada = new HiloEntrada(this.socketBT);
         this.hiloSalida = new HiloSalida(this.socketBT);
 
+        // Inicio la ejecución de hilos.
         hiloEntrada.start();
         hiloSalida.start();
 
+        // Registro de escucha de los sensores.
         this.sensorManager.registerListener(this, this.sensorAcelerometro, SensorManager.SENSOR_DELAY_NORMAL);
         this.sensorManager.registerListener(this, this.sensorGiroscopio, SensorManager.SENSOR_DELAY_NORMAL);
         this.sensorManager.registerListener(this, this.sensorProximidad, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
+    //Crea el socket basado en el UUID de la maquina a conectar.
     private BluetoothSocket crearSocketBluetooth(BluetoothDevice dispositivo) throws IOException {
         UUID uuid = this.dispositivo.getUuids()[0].getUuid();
         return dispositivo.createRfcommSocketToServiceRecord(uuid);
@@ -262,12 +269,24 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
     protected void onStop() {
         super.onStop();
         this.sensorManager.unregisterListener(this);
+
+        try {
+            this.socketBT.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         this.sensorManager.unregisterListener(this);
+
+        try {
+            this.socketBT.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////
