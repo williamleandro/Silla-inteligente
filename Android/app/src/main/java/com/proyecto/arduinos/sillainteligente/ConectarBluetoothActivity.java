@@ -3,12 +3,10 @@ package com.proyecto.arduinos.sillainteligente;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.app.ActivityCompat;
@@ -25,8 +23,6 @@ import java.util.Set;
 
 import dmax.dialog.SpotsDialog;
 
-import static dmax.dialog.SpotsDialog.*;
-
 public class ConectarBluetoothActivity extends AppCompatActivity {
     private BootstrapButton btnActivarBT;
     private BootstrapButton btnBuscarDispositivosBT;
@@ -35,9 +31,7 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
     private Set<BluetoothDevice> setVinculados;
     int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
     private Activity activity;
-    // private ProgressDialog mProgressDlg;
     private AlertDialog mProgressDlg;
-    private String direccionMAC;
 
     private static final String TAG = "Bluetooth Activity";
 
@@ -54,14 +48,6 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
 
         this.mProgressDlg = new SpotsDialog(ConectarBluetoothActivity.this, R.style.Custom);
         this.mProgressDlg.setCancelable(false);
-        this.mProgressDlg.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancelar", btnCancelarDialogListener);
-
-        /*
-        this.mProgressDlg = new ProgressDialog(this);
-        this.mProgressDlg.setMessage("Buscando dispositivos...");
-        this.mProgressDlg.setCancelable(false);
-        mProgressDlg.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancelar", btnCancelarDialogListener);
-        */
 
         this.btnActivarBT = findViewById(R.id.btnHabilitar);
         this.btnActivarBT.setOnClickListener(btnActivarBluetooth);
@@ -195,12 +181,4 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
                 }
             }
         };
-
-    private DialogInterface.OnClickListener btnCancelarDialogListener = new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            dialog.dismiss();
-            adaptadorBT.cancelDiscovery();
-        }
-    };
 }

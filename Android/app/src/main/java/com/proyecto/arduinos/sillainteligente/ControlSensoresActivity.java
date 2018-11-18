@@ -1,18 +1,32 @@
 package com.proyecto.arduinos.sillainteligente;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
+
+import com.proyecto.arduinos.sillainteligente.adaptadores.ViewPagerAdapter;
+import com.proyecto.arduinos.sillainteligente.fragments.CoolerFragment;
+import com.proyecto.arduinos.sillainteligente.fragments.LEDFragment;
+import com.proyecto.arduinos.sillainteligente.hilos.HiloEntrada;
+import com.proyecto.arduinos.sillainteligente.hilos.HiloSalida;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,14 +45,18 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
     private Sensor sensorAcelerometro;
     private Sensor sensorGiroscopio;
     private Sensor sensorProximidad;
+    private Sensor sensorLuminosidad;
     private SensorManager sensorManager;
     /***********************************/
 
-    /****** INICIO ATRIBUTOS TEXTVIEW ******/
+    /****** INICIO ATRIBUTOS VIEW ******/
     private TextView tvTemperatura;
     private TextView tvHumedad;
     private TextView tvDistancia;
     private TextView tvLumninosidad;
+    private TabLayout tabs;
+    private ViewPager viewPager;
+    private ViewPagerAdapter adaptadorVPA;
     /*************************************/
 
     private StringBuilder recDataString = new StringBuilder();
@@ -52,7 +70,7 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
     /***************************************/
 
     /****** INICIO ATRIBUTOS COMUNICACION ******/
-    private Handler bluetoothIn;
+    private Handler bluetoothHandler;
     private HiloEntrada hiloEntrada;
     private HiloSalida hiloSalida;
     /***************************************/
@@ -76,30 +94,54 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
     private float giroscopioZ;
     /****************************************/
 
+    /****** INICIO ATRIBUTOS LUMINOSIDAD******/
+    private float valorLumninosidad;
+    /****************************************/
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_control_sensores);
 
-        //Vinculación textView de la vista y los Objetos.
+        // Vinculación textView de la vista y los Objetos.
         this.tvTemperatura = findViewById(R.id.tvTemperaturaInfo);
         this.tvHumedad = findViewById(R.id.tvHumedadInfo);
         this.tvDistancia = findViewById(R.id.tvProximidadInfo);
         this.tvLumninosidad = findViewById(R.id.tvLuminosidadInfo);
 
-        this.bluetoothIn = HandlerMsg(); //Handler
+        this.tabs = findViewById(R.id.tabLayout);
+        this.viewPager = findViewById(R.id.pageView);
+        
+        crearAdaptador();
+        
+        this.tabs.setupWithViewPager(this.viewPager);
 
+        // Sensor Manager
         this.sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         this.adaptador = BluetoothAdapter.getDefaultAdapter();
 
+        // Declaracion de sensores
         this.sensorAcelerometro = this.sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         this.sensorGiroscopio = this.sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         this.sensorProximidad = this.sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        this.sensorLuminosidad = this.sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
 
         //Inicialización atributos auxiliares
         this.aceleracionAnterior = SensorManager.GRAVITY_EARTH;
         this.aceleracionValor = SensorManager.GRAVITY_EARTH;
         this.shake = 0.00f;
+
+        this.bluetoothHandler = HandlerMsg(); //Handler
+    }
+
+    private void crearAdaptador() {
+        adaptadorVPA = new ViewPagerAdapter(getSupportFragmentManager());
+
+        adaptadorVPA.addFragment(new LEDFragment(), "LED");
+        adaptadorVPA.addFragment(new CoolerFragment(), "Cooler");
+
+        this.viewPager.setAdapter(adaptadorVPA);
     }
 
     @Override
@@ -110,6 +152,8 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         Intent intent = getIntent();
         Bundle data = intent.getExtras();
         this.direccionMAC = data!=null? data.getString("direccionMAC"):null;
+
+        //Obtiene el dispositivo a partir de la direccion MAC
         this.dispositivo = adaptador.getRemoteDevice(this.direccionMAC);
 
         try {
@@ -129,17 +173,20 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         }
 
         // Creo Hilos de entrada y salida.
-        this.hiloEntrada = new HiloEntrada(this.socketBT);
+        this.hiloEntrada = new HiloEntrada(this.socketBT, bluetoothHandler);
         this.hiloSalida = new HiloSalida(this.socketBT);
 
         // Inicio la ejecución de hilos.
         hiloEntrada.start();
         hiloSalida.start();
 
+        adaptadorVPA.setThreadFragment(hiloSalida);
+
         // Registro de escucha de los sensores.
         this.sensorManager.registerListener(this, this.sensorAcelerometro, SensorManager.SENSOR_DELAY_NORMAL);
         this.sensorManager.registerListener(this, this.sensorGiroscopio, SensorManager.SENSOR_DELAY_NORMAL);
         this.sensorManager.registerListener(this, this.sensorProximidad, SensorManager.SENSOR_DELAY_NORMAL);
+        this.sensorManager.registerListener(this, this.sensorLuminosidad, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     //Crea el socket basado en el UUID de la maquina a conectar.
@@ -168,17 +215,19 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         return codigo;
     }
 
+
     private Handler HandlerMsg() {
         return new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 String mensajeIN = (String) msg.obj;
                 recDataString.append(mensajeIN);
-                int posicionFinalMensaje = recDataString.indexOf("\r\n");
+                int posicionFinalMensaje = recDataString.indexOf("\n");
 
                 if(msg.what == CODIGO_MENSAJE_TEMPERATURA) {
                     if(posicionFinalMensaje > 0) {
                         String dataInPrint = recDataString.substring(0, posicionFinalMensaje);
+                        Log.d("HANDLER", dataInPrint);
                         tvTemperatura.setText(dataInPrint);
                     }
                 }
@@ -203,11 +252,10 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
                         tvDistancia.setText(dataInPrint);
                     }
                 }
-                recDataString.delete(0, posicionFinalMensaje);
+                recDataString.delete(0, recDataString.length());
             }
         };
     }
-
     @Override
     public void onSensorChanged(SensorEvent event) {
         synchronized (this) {
@@ -226,8 +274,15 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
 
                 detectaRotacion(event);
             }
-        }
 
+            if(event.sensor.getType() == Sensor.TYPE_LIGHT) {
+                this.valorLumninosidad = event.values[0];
+
+                if(this.valorLumninosidad == 0.00) {
+                    //notificacion();
+                }
+            }
+        }
     }
 
     private void detectaRotacion(SensorEvent event) {
@@ -239,7 +294,7 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
             if (Math.abs(event.values[0]) > ROTATION_THRESHOLD ||
                     Math.abs(event.values[1]) > ROTATION_THRESHOLD ||
                     Math.abs(event.values[2]) > ROTATION_THRESHOLD) {
-                this.hiloSalida.enviarMensaje(2);
+                //this.hiloSalida.enviarMensaje("Rotation.");
             }
         }
     }
@@ -255,11 +310,28 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         delta = this.aceleracionValor - this.aceleracionAnterior;
         this.shake = this.shake * 0.9f + delta;
 
-        if(this.shake > 12) {
-            this.hiloSalida.enviarMensaje(1);
+        if(this.shake > 70) {
+            this.hiloSalida.enviarMensaje("MLU1." + '\n');
+            Log.d("SHAKE", "MLU1.");
         }
     }
 
+    private void notificacion() {
+        NotificationCompat.Builder notif = new NotificationCompat.Builder(this).
+                            setSmallIcon(R.drawable.lightbulb_on_outline).
+                            setLargeIcon(((BitmapDrawable)getResources().getDrawable(R.drawable.lightbulb_on_outline)).
+                                getBitmap()).setContentTitle("Aviso - Luz").
+                            setContentText("Se ha detectado poca luminosidad, encienda la luz de la silla.").
+                            setContentInfo("2").setTicker("Silla Inteligente - Poca Luz");
+
+        Intent intentNotification = new Intent(this, ControlSensoresActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(ControlSensoresActivity.this,
+                                                        0, intentNotification, 0);
+
+        notif.setContentIntent(pendingIntent);
+        NotificationManager managerNotification = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        managerNotification.notify(1 ,notif.build());
+    }
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
@@ -288,16 +360,21 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
             e.printStackTrace();
         }
     }
-
+}
     //////////////////////////////////////////////////////////////////////////////////////////////
-    private class HiloEntrada extends Thread {
-        private final InputStream flujoEntrada;
+    /*
+    public class HiloEntrada extends Thread {
+        private InputStream flujoEntrada = null;
+        private static final String LOGTAG = "LogsAndroid";
+        private boolean esPrimerCaracter = true;
+        private Handler miHandler = null;
 
-        public HiloEntrada (BluetoothSocket socket) {
+        public HiloEntrada (BluetoothSocket socket, Handler miHandler) {
             InputStream flujoINTemporal = null;
 
             try {
                 flujoINTemporal = socket.getInputStream();
+                this.miHandler = miHandler;
             } catch (IOException e) { }
 
             this.flujoEntrada = flujoINTemporal;
@@ -307,36 +384,51 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         public void run() {
             byte[] buffer = new byte[256];
             int bytes;
+            String readMessage = null;
+            String auxiliarMensaje = null;
 
             while (true) {
                 try {
-                    bytes = this.flujoEntrada.read(buffer);
-                    String readMessage = new String(buffer, 0, bytes);
-                    String codigo = obtenerCodigoMensaje(readMessage);
-                    String mensaje = obtenerInformacionMensaje(readMessage);
+                    if(esPrimerCaracter) {
+                        bytes = this.flujoEntrada.read(buffer);
+                        readMessage = new String(buffer, 0, bytes);
+                        esPrimerCaracter = false;
+                    } else {
+                        bytes = this.flujoEntrada.read(buffer);
+                        auxiliarMensaje = new String(buffer, 0, bytes);
+                        readMessage += auxiliarMensaje;
+                        readMessage+='\n';
+                        Log.d(LOGTAG, readMessage);
+                        miHandler.obtainMessage(CODIGO_MENSAJE_TEMPERATURA,bytes, -1, readMessage).sendToTarget();
+                        esPrimerCaracter = true;
+                    }
+
 
                     switch (codigo) {
                         case "TEMP":
-                            bluetoothIn.obtainMessage(CODIGO_MENSAJE_TEMPERATURA, bytes, -1, mensaje).sendToTarget();
+                            bluetoothHandler.obtainMessage(CODIGO_MENSAJE_TEMPERATURA, bytes, -1, mensaje).sendToTarget();
                             break;
                         case  "HUM":
-                            bluetoothIn.obtainMessage(CODIGO_MENSAJE_HUMEDAD, bytes, -1, mensaje).sendToTarget();
+                            bluetoothHandler.obtainMessage(CODIGO_MENSAJE_HUMEDAD, bytes, -1, mensaje).sendToTarget();
                             break;
                         case "LED":
-                            bluetoothIn.obtainMessage(CODIGO_MENSAJE_LUMINOSIDAD, bytes, -1, mensaje).sendToTarget();
+                            bluetoothHandler.obtainMessage(CODIGO_MENSAJE_LUMINOSIDAD, bytes, -1, mensaje).sendToTarget();
                             break;
                         case "DIST":
-                            bluetoothIn.obtainMessage(CODIGO_MENSAJE_DISTANCIA, bytes, -1, mensaje).sendToTarget();
+                            bluetoothHandler.obtainMessage(CODIGO_MENSAJE_DISTANCIA, bytes, -1, mensaje).sendToTarget();
                             break;
                     }
+
                 } catch (IOException e) {
                     break;
                 }
             }
         }
     }
+    */
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    private class HiloSalida extends Thread {
+    /*
+    public class HiloSalida extends Thread {
         private final OutputStream flujoSalida;
 
         public HiloSalida (BluetoothSocket socket) {
@@ -355,8 +447,8 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
             while (true) { }
         }
 
-        public void enviarMensaje(int i) {
-            String mensaje = Integer.toString(i);
+        public void enviarMensaje(String i) {
+            String mensaje = i;
             mensaje += "\n";
 
             try {
@@ -367,5 +459,5 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
             }
         }
     }
+    */
     ///////////////////////////////////////////////////////////////////////////////////////////////
-}

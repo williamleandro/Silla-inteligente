@@ -5,4 +5,7 @@
     <string name="btn_activarBT">Activar Bluetooth</string>
     <string name="btn_buscarDevice">Buscar Dispositivos</string>
     <string name="btn_verEmparejadosDevice">Dispositivos Emparejados</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
