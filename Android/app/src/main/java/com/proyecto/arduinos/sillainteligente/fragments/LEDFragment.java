@@ -10,6 +10,7 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import com.proyecto.arduinos.sillainteligente.R;
+import com.proyecto.arduinos.sillainteligente.utilitarios.Constante;
 import com.proyecto.arduinos.sillainteligente.hilos.HiloSalida;
 
 /**
@@ -41,9 +42,9 @@ public class LEDFragment extends Fragment {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if(isChecked) {
-                hiloSalida.enviarMensaje("MLU1"+'\n');
+                hiloSalida.enviarMensaje(Constante.SEÑAL_LUZ_HIGH);
             } else {
-                hiloSalida.enviarMensaje("MLU0"+'\n');
+                hiloSalida.enviarMensaje(Constante.SEÑAL_LUZ_LOW);
             }
         }
     };

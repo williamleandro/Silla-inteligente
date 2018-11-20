@@ -1,4 +1,4 @@
-package com.proyecto.arduinos.sillainteligente;
+package com.proyecto.arduinos.sillainteligente.adaptadores;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -8,6 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+
+import com.proyecto.arduinos.sillainteligente.R;
+
 import java.util.List;
 
 

@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 
 import com.beardedhen.androidbootstrap.BootstrapButton;
+import com.proyecto.arduinos.sillainteligente.adaptadores.DeviceListAdapter;
 
 import java.util.ArrayList;
 import java.util.Set;

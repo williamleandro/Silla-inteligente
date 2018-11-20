@@ -8,14 +8,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.beardedhen.androidbootstrap.BootstrapButton;
 import com.proyecto.arduinos.sillainteligente.R;
+import com.proyecto.arduinos.sillainteligente.utilitarios.Constante;
 import com.proyecto.arduinos.sillainteligente.hilos.HiloSalida;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class CoolerFragment extends Fragment {
-    private Button btnCooler;
+    private BootstrapButton btnCooler;
     private HiloSalida hiloSalida;
 
     public CoolerFragment() {
@@ -41,7 +43,7 @@ public class CoolerFragment extends Fragment {
     private View.OnClickListener btnAccionCooler = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            hiloSalida.enviarMensaje("MCO1"+'\n');
+            hiloSalida.enviarMensaje(Constante.SEÑAL_COOLER_HIGH);
         }
     };
 

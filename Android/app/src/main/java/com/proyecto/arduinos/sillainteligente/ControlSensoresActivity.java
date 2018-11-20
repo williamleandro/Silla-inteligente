@@ -1,5 +1,7 @@
 package com.proyecto.arduinos.sillainteligente;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
@@ -12,25 +14,28 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
 import com.proyecto.arduinos.sillainteligente.adaptadores.ViewPagerAdapter;
+import com.proyecto.arduinos.sillainteligente.utilitarios.App;
+import com.proyecto.arduinos.sillainteligente.utilitarios.Constante;
 import com.proyecto.arduinos.sillainteligente.fragments.CoolerFragment;
 import com.proyecto.arduinos.sillainteligente.fragments.LEDFragment;
 import com.proyecto.arduinos.sillainteligente.hilos.HiloEntrada;
 import com.proyecto.arduinos.sillainteligente.hilos.HiloSalida;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.UUID;
 
 public class ControlSensoresActivity extends AppCompatActivity implements SensorEventListener {
@@ -60,14 +65,8 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
     /*************************************/
 
     private StringBuilder recDataString = new StringBuilder();
-
-    /****** INICIO ATRIBUTOS CONSTANTES ******/
-    private static final String SEPARADOR_SPLIT = "_";
-    private static final int CODIGO_MENSAJE_TEMPERATURA = 10;
-    private static final int CODIGO_MENSAJE_HUMEDAD = 11;
-    private static final int CODIGO_MENSAJE_LUMINOSIDAD = 12;
-    private static final int CODIGO_MENSAJE_DISTANCIA = 13;
-    /***************************************/
+    private NotificationManagerCompat notificationManagerCompat;
+    private static final String CHANNEL_NOTIF_LED_ID = "Led_Uno";
 
     /****** INICIO ATRIBUTOS COMUNICACION ******/
     private Handler bluetoothHandler;
@@ -86,7 +85,7 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
     /****************************************/
 
     /****** INICIO ATRIBUTOS GIROSCOPIO ******/
-    private static final float ROTATION_THRESHOLD = 2.0f;
+    private static final float ROTATION_THRESHOLD = 3.0f;
     private static final int ROTATION_WAIT_TIME_MS = 100;
     private long mRotationTime = 0;
     private float giroscopioX;
@@ -133,6 +132,8 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         this.shake = 0.00f;
 
         this.bluetoothHandler = HandlerMsg(); //Handler
+
+        this.notificationManagerCompat = NotificationManagerCompat.from(this);
     }
 
     private void crearAdaptador() {
@@ -142,6 +143,18 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         adaptadorVPA.addFragment(new CoolerFragment(), "Cooler");
 
         this.viewPager.setAdapter(adaptadorVPA);
+    }
+
+    public void enviarACanalLED() {
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_NOTIF_LED_ID)
+                .setSmallIcon(R.drawable.lightbulb_on_outline)
+                .setContentTitle("Aviso - Luz")
+                .setContentText("Se ha detectado poca luminosidad, encienda la luz de la silla.")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE).build();
+
+        notificationManagerCompat.notify(1, notification);
+
     }
 
     @Override
@@ -195,25 +208,6 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         return dispositivo.createRfcommSocketToServiceRecord(uuid);
     }
 
-    private String obtenerCodigoMensaje(String readMessage) {
-        String codigo = null;
-        String[] arraySplit = null;
-
-        arraySplit = readMessage.split(SEPARADOR_SPLIT);
-        codigo = arraySplit[0];
-
-        return codigo;
-    }
-
-    private String obtenerInformacionMensaje(String readMessage) {
-        String codigo = null;
-        String[] arraySplit = null;
-
-        arraySplit = readMessage.split(SEPARADOR_SPLIT);
-        codigo = arraySplit[1];
-
-        return codigo;
-    }
 
 
     private Handler HandlerMsg() {
@@ -224,29 +218,29 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
                 recDataString.append(mensajeIN);
                 int posicionFinalMensaje = recDataString.indexOf("\n");
 
-                if(msg.what == CODIGO_MENSAJE_TEMPERATURA) {
+                if(msg.what == Constante.CODIGO_MENSAJE_TEMPERATURA) {
                     if(posicionFinalMensaje > 0) {
                         String dataInPrint = recDataString.substring(0, posicionFinalMensaje);
-                        Log.d("HANDLER", dataInPrint);
+                        //Log.d("HANDLER", dataInPrint);
                         tvTemperatura.setText(dataInPrint);
                     }
                 }
 
-                if(msg.what == CODIGO_MENSAJE_HUMEDAD) {
+                if(msg.what == Constante.CODIGO_MENSAJE_POTENCIOMETRO) {
                     if(posicionFinalMensaje > 0) {
                         String dataInPrint = recDataString.substring(0, posicionFinalMensaje);
                         tvHumedad.setText(dataInPrint);
                     }
                 }
 
-                if(msg.what == CODIGO_MENSAJE_LUMINOSIDAD) {
+                if(msg.what == Constante.CODIGO_MENSAJE_LUMINOSIDAD) {
                     if(posicionFinalMensaje > 0) {
                         String dataInPrint = recDataString.substring(0, posicionFinalMensaje);
                         tvLumninosidad.setText(dataInPrint);
                     }
                 }
 
-                if(msg.what == CODIGO_MENSAJE_DISTANCIA) {
+                if(msg.what == Constante.CODIGO_MENSAJE_DISTANCIA) {
                     if(posicionFinalMensaje > 0) {
                         String dataInPrint = recDataString.substring(0, posicionFinalMensaje);
                         tvDistancia.setText(dataInPrint);
@@ -277,9 +271,9 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
 
             if(event.sensor.getType() == Sensor.TYPE_LIGHT) {
                 this.valorLumninosidad = event.values[0];
-
-                if(this.valorLumninosidad == 0.00) {
-                    //notificacion();
+                this.tvLumninosidad.setText(String.valueOf(this.valorLumninosidad));
+                if(this.valorLumninosidad < 2.0) {
+                    enviarACanalLED();
                 }
             }
         }
@@ -294,7 +288,7 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
             if (Math.abs(event.values[0]) > ROTATION_THRESHOLD ||
                     Math.abs(event.values[1]) > ROTATION_THRESHOLD ||
                     Math.abs(event.values[2]) > ROTATION_THRESHOLD) {
-                //this.hiloSalida.enviarMensaje("Rotation.");
+                this.hiloSalida.enviarMensaje(Constante.SEÑAL_COOLER_HIGH);
             }
         }
     }
@@ -311,27 +305,10 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         this.shake = this.shake * 0.9f + delta;
 
         if(this.shake > 70) {
-            this.hiloSalida.enviarMensaje("MLU1." + '\n');
-            Log.d("SHAKE", "MLU1.");
+            this.hiloSalida.enviarMensaje(Constante.SEÑAL_LUZ_HIGH);
         }
     }
 
-    private void notificacion() {
-        NotificationCompat.Builder notif = new NotificationCompat.Builder(this).
-                            setSmallIcon(R.drawable.lightbulb_on_outline).
-                            setLargeIcon(((BitmapDrawable)getResources().getDrawable(R.drawable.lightbulb_on_outline)).
-                                getBitmap()).setContentTitle("Aviso - Luz").
-                            setContentText("Se ha detectado poca luminosidad, encienda la luz de la silla.").
-                            setContentInfo("2").setTicker("Silla Inteligente - Poca Luz");
-
-        Intent intentNotification = new Intent(this, ControlSensoresActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(ControlSensoresActivity.this,
-                                                        0, intentNotification, 0);
-
-        notif.setContentIntent(pendingIntent);
-        NotificationManager managerNotification = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        managerNotification.notify(1 ,notif.build());
-    }
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
@@ -361,103 +338,3 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         }
     }
 }
-    //////////////////////////////////////////////////////////////////////////////////////////////
-    /*
-    public class HiloEntrada extends Thread {
-        private InputStream flujoEntrada = null;
-        private static final String LOGTAG = "LogsAndroid";
-        private boolean esPrimerCaracter = true;
-        private Handler miHandler = null;
-
-        public HiloEntrada (BluetoothSocket socket, Handler miHandler) {
-            InputStream flujoINTemporal = null;
-
-            try {
-                flujoINTemporal = socket.getInputStream();
-                this.miHandler = miHandler;
-            } catch (IOException e) { }
-
-            this.flujoEntrada = flujoINTemporal;
-        }
-
-        @Override
-        public void run() {
-            byte[] buffer = new byte[256];
-            int bytes;
-            String readMessage = null;
-            String auxiliarMensaje = null;
-
-            while (true) {
-                try {
-                    if(esPrimerCaracter) {
-                        bytes = this.flujoEntrada.read(buffer);
-                        readMessage = new String(buffer, 0, bytes);
-                        esPrimerCaracter = false;
-                    } else {
-                        bytes = this.flujoEntrada.read(buffer);
-                        auxiliarMensaje = new String(buffer, 0, bytes);
-                        readMessage += auxiliarMensaje;
-                        readMessage+='\n';
-                        Log.d(LOGTAG, readMessage);
-                        miHandler.obtainMessage(CODIGO_MENSAJE_TEMPERATURA,bytes, -1, readMessage).sendToTarget();
-                        esPrimerCaracter = true;
-                    }
-
-
-                    switch (codigo) {
-                        case "TEMP":
-                            bluetoothHandler.obtainMessage(CODIGO_MENSAJE_TEMPERATURA, bytes, -1, mensaje).sendToTarget();
-                            break;
-                        case  "HUM":
-                            bluetoothHandler.obtainMessage(CODIGO_MENSAJE_HUMEDAD, bytes, -1, mensaje).sendToTarget();
-                            break;
-                        case "LED":
-                            bluetoothHandler.obtainMessage(CODIGO_MENSAJE_LUMINOSIDAD, bytes, -1, mensaje).sendToTarget();
-                            break;
-                        case "DIST":
-                            bluetoothHandler.obtainMessage(CODIGO_MENSAJE_DISTANCIA, bytes, -1, mensaje).sendToTarget();
-                            break;
-                    }
-
-                } catch (IOException e) {
-                    break;
-                }
-            }
-        }
-    }
-    */
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    /*
-    public class HiloSalida extends Thread {
-        private final OutputStream flujoSalida;
-
-        public HiloSalida (BluetoothSocket socket) {
-            OutputStream flujoOUTTemporal = null;
-
-            try {
-                flujoOUTTemporal = socket.getOutputStream();
-            } catch (IOException e) { }
-
-            this.flujoSalida = flujoOUTTemporal;
-        }
-
-        @Override
-        public void run() {
-
-            while (true) { }
-        }
-
-        public void enviarMensaje(String i) {
-            String mensaje = i;
-            mensaje += "\n";
-
-            try {
-                this.flujoSalida.write(mensaje.getBytes());
-            } catch (IOException e) {
-                e.printStackTrace();
-                finish();
-            }
-        }
-    }
-    */
-    ///////////////////////////////////////////////////////////////////////////////////////////////

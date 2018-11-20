@@ -12,6 +12,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.proyecto.arduinos.sillainteligente.adaptadores.DeviceListAdapter;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 

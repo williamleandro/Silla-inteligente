@@ -4,6 +4,8 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 import android.util.Log;
 
+import com.proyecto.arduinos.sillainteligente.utilitarios.Constante;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,13 +14,9 @@ public class HiloEntrada extends Thread {
     private static final String LOGTAG = "LogsAndroid";
     private boolean esPrimerCaracter = true;
     private Handler miHandler = null;
-
+    private String codigo;
     /****** INICIO ATRIBUTOS CONSTANTES ******/
-    private static final String SEPARADOR_SPLIT = "_";
-    private static final int CODIGO_MENSAJE_TEMPERATURA = 10;
-    private static final int CODIGO_MENSAJE_HUMEDAD = 11;
-    private static final int CODIGO_MENSAJE_LUMINOSIDAD = 12;
-    private static final int CODIGO_MENSAJE_DISTANCIA = 13;
+
     /***************************************/
 
 
@@ -51,30 +49,33 @@ public class HiloEntrada extends Thread {
                     auxiliarMensaje = new String(buffer, 0, bytes);
                     readMessage += auxiliarMensaje;
                     readMessage+='\n';
-                    Log.d(LOGTAG, readMessage);
-                    miHandler.obtainMessage(CODIGO_MENSAJE_TEMPERATURA,bytes, -1, readMessage).sendToTarget();
-                    esPrimerCaracter = true;
-                }
 
-                    /*
+                    codigo = getCodigo(readMessage);
+
                     switch (codigo) {
-                        case "TEMP":
-                            bluetoothHandler.obtainMessage(CODIGO_MENSAJE_TEMPERATURA, bytes, -1, mensaje).sendToTarget();
+                        case Constante.COD_TEMP:
+                            miHandler.obtainMessage(Constante.CODIGO_MENSAJE_TEMPERATURA, bytes, -1, readMessage).sendToTarget();
                             break;
-                        case  "HUM":
-                            bluetoothHandler.obtainMessage(CODIGO_MENSAJE_HUMEDAD, bytes, -1, mensaje).sendToTarget();
+                        case  Constante.COD_POT:
+                            miHandler.obtainMessage(Constante.CODIGO_MENSAJE_POTENCIOMETRO, bytes, -1, readMessage).sendToTarget();
                             break;
-                        case "LED":
-                            bluetoothHandler.obtainMessage(CODIGO_MENSAJE_LUMINOSIDAD, bytes, -1, mensaje).sendToTarget();
+                        case Constante.COD_LUZ:
+                            miHandler.obtainMessage(Constante.CODIGO_MENSAJE_LUMINOSIDAD, bytes, -1, readMessage).sendToTarget();
                             break;
-                        case "DIST":
-                            bluetoothHandler.obtainMessage(CODIGO_MENSAJE_DISTANCIA, bytes, -1, mensaje).sendToTarget();
+                        case Constante.COD_US:
+                            miHandler.obtainMessage(Constante.CODIGO_MENSAJE_DISTANCIA, bytes, -1, readMessage).sendToTarget();
                             break;
                     }
-                    */
+                    //Log.d(LOGTAG, readMessage);
+                    esPrimerCaracter = true;
+                }
             } catch (IOException e) {
                 break;
             }
         }
+    }
+
+    private String getCodigo(String mensaje) {
+        return mensaje.substring(0, 2);
     }
 }

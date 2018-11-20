@@ -1,11 +1,28 @@
 <resources>
     <string name="app_name">SillaInteligente</string>
+    <string name="btn_inicio">Iniciar</string>
     <string name="btn_blue">Conectar Bluetooth</string>
     <string name="btn_sensores">Sensores</string>
     <string name="btn_activarBT">Activar Bluetooth</string>
     <string name="btn_buscarDevice">Buscar Dispositivos</string>
     <string name="btn_verEmparejadosDevice">Dispositivos Emparejados</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- Activity Sensores -->
+    <string name="info">Información Sensores</string>
+    <string name="tvTemperatura">Temperatura</string>
+    <string name="tvHumedad">Humedad</string>
+    <string name="tvLuz">Luminosidad</string>
+    <string name="tvDistancia">Distancia</string>
+
+    <!-- LED Fragment -->
+    <string name="opcion_uno_led">Opción Uno </string>
+    <string name="switch_LED">Encender/Apagar LED </string>
+    <string name="opcion_dos_led">Opción Dos </string>
+    <string name="mensaje_Sensor_LED">Realiza un shake con el dispositivo para encender o apagar el LED. </string>
+
+    <!-- Cooler Fragment -->
+    <string name="opcion_uno_cooler">Opción Uno </string>
+    <string name="opcion_dos_cooler">Opción Dos </string>
+    <string name="btn_cooler">Encender Cooler </string>
+    <string name="mensaje_Sensor_cooler">Rota el dispositivo para encender o apagar el Cooler. </string>
 </resources>

@@ -6,12 +6,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".DeviceListActivity"
+    android:background="@drawable/gradient"
     >
 
     <ListView
         android:id="@+id/lv_dispositivos"
         android:layout_width="0dp"
-        android:layout_height="473dp"
+        android:layout_height="529dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
