@@ -1,20 +1,14 @@
 package com.proyecto.arduinos.sillainteligente;
 
 import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.TabLayout;
@@ -23,12 +17,9 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
 import android.widget.TextView;
 
 import com.proyecto.arduinos.sillainteligente.adaptadores.ViewPagerAdapter;
-import com.proyecto.arduinos.sillainteligente.utilitarios.App;
 import com.proyecto.arduinos.sillainteligente.utilitarios.Constante;
 import com.proyecto.arduinos.sillainteligente.fragments.CoolerFragment;
 import com.proyecto.arduinos.sillainteligente.fragments.LEDFragment;
@@ -208,8 +199,6 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         return dispositivo.createRfcommSocketToServiceRecord(uuid);
     }
 
-
-
     private Handler HandlerMsg() {
         return new Handler() {
             @Override
@@ -250,6 +239,7 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
             }
         };
     }
+
     @Override
     public void onSensorChanged(SensorEvent event) {
         synchronized (this) {
