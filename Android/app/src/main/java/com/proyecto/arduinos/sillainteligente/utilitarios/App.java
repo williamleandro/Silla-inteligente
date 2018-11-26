@@ -8,6 +8,7 @@ import android.os.Build;
 
 public class App extends Application {
     private static final String CHANNEL_NOTIF_LED_ID = "Led_Uno";
+    private static final String CHANNEL_NOTIF_LED_ID_2 = "Led_Dos";
 
     @Override
     public void onCreate() {
@@ -23,6 +24,13 @@ public class App extends Application {
 
             NotificationManager managerNotification = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             managerNotification.createNotificationChannel(canalNotificacionLED);
+
+            NotificationChannel canalNotificacionAlarma = new NotificationChannel(
+                    CHANNEL_NOTIF_LED_ID_2, "CANAL_ALARMA", NotificationManager.IMPORTANCE_HIGH);
+            canalNotificacionAlarma.setDescription("Este es el canal LED.");
+
+            NotificationManager managerNotificationAlarma = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            managerNotificationAlarma.createNotificationChannel(canalNotificacionAlarma);
         }
     }
 }

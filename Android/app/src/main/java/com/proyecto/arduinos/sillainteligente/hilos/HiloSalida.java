@@ -25,7 +25,7 @@ public class HiloSalida extends Thread {
 
     public void enviarMensaje(String i) {
         String mensaje = i;
-        mensaje += "\n";
+        //mensaje += "\n";
 
         try {
             this.flujoSalida.write(mensaje.getBytes());

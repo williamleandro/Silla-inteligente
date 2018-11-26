@@ -60,14 +60,12 @@ public class DeviceListActivity extends AppCompatActivity {
                 final int prevState = intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, BluetoothDevice.ERROR);
 
                 if (state == BluetoothDevice.BOND_BONDED && prevState == BluetoothDevice.BOND_BONDING) {
-                    printLog("Emparejado");
 
                     Intent data = new Intent(DeviceListActivity.this, ControlSensoresActivity.class);
                     data.putExtra("direccionMAC", direccionMAC);
                     startActivity(data);
 
                 } else {
-                    printLog("No emparejado");
                 }
                 mAdapter.notifyDataSetChanged();
             }
@@ -81,10 +79,6 @@ public class DeviceListActivity extends AppCompatActivity {
         this.mAdapter = null;
 
         super.onDestroy();
-    }
-
-    public void printLog(String mensaje) {
-        Log.d(this.TAG, mensaje);
     }
 
     public void emparejar(int posicion) {

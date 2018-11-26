@@ -51,6 +51,17 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
         }
     }
 
+    public void setSenialLuminosidad(boolean flag) {
+        for(int i=0; i<listaFragmento.size(); i++) {
+            String titulo = tituloFragmento.get(i);
+
+            if(titulo.equals(new String("LED"))) {
+                LEDFragment led = (LEDFragment) listaFragmento.get(i);
+                led.setFlagLuzEncendida(flag);
+            }
+        }
+    }
+
     @Nullable
     @Override
     public CharSequence getPageTitle(int position) {

@@ -27,7 +27,6 @@ public class MainActivity extends AppCompatActivity {
     private View.OnClickListener btnHabilitarBluetooth = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            //Toast.makeText(getApplicationContext(), "Iniciando Activity BT", Toast.LENGTH_LONG).show();
             Intent intent = new Intent(getApplicationContext(), ConectarBluetoothActivity.class);
             startActivity(intent);
         }

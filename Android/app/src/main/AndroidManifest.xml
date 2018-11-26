@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.SET_ALARM" />
 
     <application
         android:name=".utilitarios.App"
@@ -25,6 +26,9 @@
         <activity android:name=".ConectarBluetoothActivity"  android:screenOrientation="portrait"/>
         <activity android:name=".ControlSensoresActivity" android:screenOrientation="portrait" />
         <activity android:name=".DeviceListActivity" android:screenOrientation="portrait" ></activity>
+
+        <!--  Declare  Alarm Broadcast receiver here  -->
+        <receiver android:name=".utilitarios.AlarmReceiver" />
     </application>
 
 </manifest>

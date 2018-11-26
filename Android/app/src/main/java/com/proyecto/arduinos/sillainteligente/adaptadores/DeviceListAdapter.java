@@ -75,6 +75,10 @@ public class DeviceListAdapter extends BaseAdapter {
             holder.tvState.setTextColor(Color.GREEN);
         }
 
+        if(estadoDispositivo == BluetoothDevice.BOND_NONE) {
+            holder.tvState.setTextColor(Color.RED);
+        }
+
 
         return convertView;
     }

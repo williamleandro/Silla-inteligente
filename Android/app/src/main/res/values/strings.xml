@@ -15,9 +15,9 @@
     <string name="tvDistancia">Distancia</string>
 
     <!-- LED Fragment -->
-    <string name="opcion_uno_led">Opción Uno </string>
+    <string name="opcion_uno_led">Intensidad LED </string>
     <string name="switch_LED">Encender/Apagar LED </string>
-    <string name="opcion_dos_led">Opción Dos </string>
+    <string name="opcion_dos_led">Encender/Apagar LED </string>
     <string name="mensaje_Sensor_LED">Realiza un shake con el dispositivo para encender o apagar el LED. </string>
 
     <!-- Cooler Fragment -->

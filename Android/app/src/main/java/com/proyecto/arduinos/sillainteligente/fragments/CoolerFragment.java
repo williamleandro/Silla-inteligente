@@ -19,6 +19,7 @@ import com.proyecto.arduinos.sillainteligente.hilos.HiloSalida;
 public class CoolerFragment extends Fragment {
     private BootstrapButton btnCooler;
     private HiloSalida hiloSalida;
+    private boolean coolerEncendido = false;
 
     public CoolerFragment() {
         // Required empty public constructor
@@ -43,7 +44,16 @@ public class CoolerFragment extends Fragment {
     private View.OnClickListener btnAccionCooler = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            hiloSalida.enviarMensaje(Constante.SEÑAL_COOLER_HIGH);
+            if(!coolerEncendido) {
+                hiloSalida.enviarMensaje(Constante.SEÑAL_COOLER_HIGH);
+                coolerEncendido = true;
+                btnCooler.setText("Apagar Cooler");
+            } else {
+                hiloSalida.enviarMensaje(Constante.SEÑAL_COOLER_LOW);
+                coolerEncendido = false;
+                btnCooler.setText("Encender Cooler");
+            }
+
         }
     };
 
