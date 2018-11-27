@@ -24,8 +24,6 @@ public class DeviceListActivity extends AppCompatActivity {
     private int posicionListBluethoot;
     private String direccionMAC = null;
 
-    private static final String TAG = "DeviceList Activity";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +48,7 @@ public class DeviceListActivity extends AppCompatActivity {
         registerReceiver(mPairReceiver, filter);
     }
 
+    // Si se decide cambiar el estado (Vinculado/No Vinculado) se toman esos eventos.
     private final BroadcastReceiver mPairReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -81,6 +80,7 @@ public class DeviceListActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+
     public void emparejar(int posicion) {
         this.posicionListBluethoot = posicion;
         BluetoothDevice device = mDeviceList.get(posicionListBluethoot);
@@ -94,6 +94,7 @@ public class DeviceListActivity extends AppCompatActivity {
 
     }
 
+    // Realiza la accion de iniciar el emparejamiento de los dispositivos
     private void emparejarDispositivo(BluetoothDevice device) {
         try {
             Method method = device.getClass().getMethod("createBond", (Class[]) null);
@@ -104,6 +105,7 @@ public class DeviceListActivity extends AppCompatActivity {
         }
     }
 
+    // Realiza la accion de iniciar el desemparejamiento de los dispositivos
     private void desemparejarDispositivo(BluetoothDevice device) {
         try {
             Method method = device.getClass().getMethod("removeBond", (Class[]) null);

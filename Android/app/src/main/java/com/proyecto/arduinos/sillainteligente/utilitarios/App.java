@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
 
+//CLASE QUE CREA LOS CANALES DE NOTIFICACIONES NECESARIOS PARA LANZARLOS
 public class App extends Application {
     private static final String CHANNEL_NOTIF_LED_ID = "Led_Uno";
     private static final String CHANNEL_NOTIF_LED_ID_2 = "Led_Dos";

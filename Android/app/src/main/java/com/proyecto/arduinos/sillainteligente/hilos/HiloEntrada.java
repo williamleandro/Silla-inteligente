@@ -13,7 +13,6 @@ import java.util.List;
 
 public class HiloEntrada extends Thread {
     private InputStream flujoEntrada = null;
-    private static final String LOGTAG = "LogsAndroid";
     private boolean seConcatena = false;
     private boolean esPrimerMensaje = false;
     private boolean cadenaFormada = false;
@@ -21,12 +20,8 @@ public class HiloEntrada extends Thread {
     private List<String> listaCodigo = new ArrayList<>();
     private String subcadena = null;
     private int bytes = 0;
-    /****** INICIO ATRIBUTOS CONSTANTES ******/
 
-    /***************************************/
-
-
-    public HiloEntrada (BluetoothSocket socket, Handler miHandler) {
+    public HiloEntrada (BluetoothSocket socket, Handler miHandler) { //Constructor
         InputStream flujoINTemporal = null;
 
         try {
@@ -46,8 +41,8 @@ public class HiloEntrada extends Thread {
 
         while (true) {
             try {
-                bytes = this.flujoEntrada.read(buffer);
-                readMessage = new String(buffer, 0, bytes);
+                bytes = this.flujoEntrada.read(buffer); //Lee Flujo
+                readMessage = new String(buffer, 0, bytes); // Crea String
                 mensaje = new String(readMessage);
 
                 if(mensaje.length() == 1 && !seConcatena) {
@@ -102,6 +97,7 @@ public class HiloEntrada extends Thread {
         }
     }
 
+    //Obtiene la cadena para poder analizarla
     private String obtenerSubcadena(String mensaje) {
         int start = mensaje.indexOf("#");
         int end = mensaje.indexOf("@");
@@ -109,6 +105,7 @@ public class HiloEntrada extends Thread {
         return start<end? mensaje.substring(start+1, end):null;
     }
 
+    //Obtiene los códigos dentro de la cadena
     private ArrayList<String> getCodigo(String mensaje) {
         ArrayList<String> auxiliar = new ArrayList<>();
         auxiliar.add(mensaje.substring(0, 3));

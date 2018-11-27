@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -67,7 +68,6 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
         this.adaptadorBT = BluetoothAdapter.getDefaultAdapter();
 
         if(this.adaptadorBT == null) {
-            Toast.makeText(getApplicationContext(), "El dispositivo no cuenta con Bluetooth", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -77,6 +77,7 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
             btnEmparejadosBT.setEnabled(true);
         }
 
+        //  Se declara IntentFilter para registrar los Eventos del Broadcast Receiver
         IntentFilter filterBusqueda = new IntentFilter();
         filterBusqueda.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
         filterBusqueda.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
@@ -112,6 +113,7 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
                 btnBuscarDispositivosBT.setEnabled(false);
                 btnEmparejadosBT.setEnabled(false);
             } else {
+                // Intent para lanzar Actividad
                 Intent enableBluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBluetooth, 1000);
 
@@ -129,20 +131,18 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                         MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
                 if (adaptadorBT.isDiscovering()) {
-                    Toast.makeText(getApplicationContext(),
-                            "El dispositivo ya se encuentra en búsqueda.", Toast.LENGTH_SHORT).show();
+                    Log.d("BT", "Buscando Dispositivo");
                 } else {
                     if (adaptadorBT.startDiscovery()) {
-                        //Toast.makeText(getApplicationContext(),
-                           //     "Buscando dispositivos.", Toast.LENGTH_SHORT).show();
+                        Log.d("BT", "Iniciando Busqueda");
                     } else {
-                        Toast.makeText(getApplicationContext(),
-                                "Error en la búsqueda.", Toast.LENGTH_SHORT).show();
+                        Log.d("BT", "Error en Busqueda");
                     }
                 }
             }
     };
 
+    //  Carga los dispositivos ya emparejados y los envia a la activity que los lista.
     private View.OnClickListener btnEmparejarBluetooth = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -160,6 +160,7 @@ public class ConectarBluetoothActivity extends AppCompatActivity {
         }
     };
 
+    //  Broadcast Receiver que obtengo los eventos de Bluetooth
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {

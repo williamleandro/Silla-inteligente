@@ -22,7 +22,6 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
 
 import com.proyecto.arduinos.sillainteligente.adaptadores.ViewPagerAdapter;
@@ -47,7 +46,6 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
     /****** INICIO ATRIBUTOS SENSOR ******/
     private Sensor sensorAcelerometro;
     private Sensor sensorGiroscopio;
-    private Sensor sensorContadorPasos;
     private Sensor sensorLuminosidad;
     private SensorManager sensorManager;
     /***********************************/
@@ -90,13 +88,12 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
 
     /****** INICIO ATRIBUTOS LUMINOSIDAD******/
     private float valorLumninosidad;
-    private boolean estadoLED = false;
+    private boolean estadoLED = true;
     /****************************************/
 
     /****** ATRIBUTOS PASOS/PULSADOR/ALARMA *****/
     public static boolean estadoPulsador = false;
     public static boolean primerPulso = true;
-    public static int contadorPasos = 0;
     private static final int INTERVALO_TIME = 1000*15; //DEFINO 15 segundos
     private static final int ALARM_REQUEST_CODE = 133; //Alarm Request Code
     private PendingIntent pendingIntent;
@@ -127,7 +124,6 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         // Declaracion de sensores
         this.sensorAcelerometro = this.sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         this.sensorGiroscopio = this.sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        this.sensorContadorPasos = this.sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         this.sensorLuminosidad = this.sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
 
         //Inicialización atributos auxiliares
@@ -144,9 +140,9 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         this.pendingIntent = PendingIntent.getBroadcast(ControlSensoresActivity.this, ALARM_REQUEST_CODE, alarmIntent, 0);
     }
 
+    //Crea el adapter para usar los Fragments en las pestañas.
     private void crearAdaptador() {
         adaptadorVPA = new ViewPagerAdapter(getSupportFragmentManager());
-
         adaptadorVPA.addFragment(new LEDFragment(), "LED");
         adaptadorVPA.addFragment(new CoolerFragment(), "Cooler");
 
@@ -189,12 +185,11 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         hiloEntrada.start();
         hiloSalida.start();
 
-        adaptadorVPA.setThreadFragment(hiloSalida);
+        adaptadorVPA.setThreadFragment(hiloSalida); //Envio el Hilo de Lectura a todos los Fragments.
 
         // Registro de escucha de los sensores.
         this.sensorManager.registerListener(this, this.sensorAcelerometro, SensorManager.SENSOR_DELAY_NORMAL);
         this.sensorManager.registerListener(this, this.sensorGiroscopio, SensorManager.SENSOR_DELAY_NORMAL);
-        this.sensorManager.registerListener(this, this.sensorContadorPasos, SensorManager.SENSOR_DELAY_NORMAL);
         this.sensorManager.registerListener(this, this.sensorLuminosidad, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
@@ -320,17 +315,16 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
                             estadoPulsador = true;
 
                             if(primerPulso) {
-                                alarmaInicio();
+                                iniciarAlarma();
                                 primerPulso = false;
                             }
                         }
 
                         if(dataInPrint.equals(Constante.SEÑAL_ESTPUL_ARD_L)) {
                             estadoPulsador = false;
-                            alarmaDetener();
+                            detenerAlarma();
                             primerPulso = true;
                         }
-
                     }
                 }
                 recDataString.delete(0, recDataString.length());
@@ -345,12 +339,14 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         }
     }
 
-    public void alarmaInicio() {
+    //Inicio de Alarma
+    public void iniciarAlarma() {
         AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);//get instance of alarm manager
         manager.set(AlarmManager.RTC_WAKEUP, (System.currentTimeMillis()+INTERVALO_TIME), pendingIntent);//set alarm manager with entered timer by converting into milliseconds
     }
 
-    public void alarmaDetener() {
+    //Detención de Alarma
+    public void detenerAlarma() {
         AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         manager.cancel(pendingIntent);
     }
@@ -369,10 +365,6 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
             if(event.sensor.getType() == Sensor.TYPE_LIGHT) { //SI CAMBIO EL VALOR DEL SENSOR DE LUMINOSIDAD
                 this.valorLumninosidad = event.values[0];
                 verificarEstadoNotificacion();
-            }
-
-            if(event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {  //SI CAMBIO EL VALOR DE CONTADOR DE PASOS
-                   this.contadorPasos++;
             }
         }
     }
@@ -421,7 +413,7 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
 
     }
 
-    //METODO QUE LANZA LA NOTIFICACION EN LA BARRA DE ESTADO DE
+    //METODO QUE LANZA LA NOTIFICACION EN LA BARRA DE ESTADO SOBRE El LED
     public void enviarACanalLED() {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_NOTIF_LED_ID)
                 .setSmallIcon(R.drawable.lightbulb_on_outline)

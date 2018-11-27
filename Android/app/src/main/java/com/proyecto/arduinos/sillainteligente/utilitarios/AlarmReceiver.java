@@ -10,6 +10,7 @@ import android.support.v4.app.NotificationManagerCompat;
 import com.proyecto.arduinos.sillainteligente.ControlSensoresActivity;
 import com.proyecto.arduinos.sillainteligente.R;
 
+//CLASE QUE EXTIENDE DE UN BROADCAST RECEIVER Y LANZA LA NOTIFICACION
 public class AlarmReceiver extends BroadcastReceiver {
     private NotificationManagerCompat notificationManagerCompat;
     private static final String CHANNEL_NOTIF_LED_ID_2 = "Led_Dos";
