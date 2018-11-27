@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
+import com.proyecto.arduinos.sillainteligente.ControlSensoresActivity;
 import com.proyecto.arduinos.sillainteligente.R;
 
 public class AlarmReceiver extends BroadcastReceiver {
@@ -17,7 +18,8 @@ public class AlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         this.notificationManagerCompat = NotificationManagerCompat.from(context);
 
-        crearNotificacion(context);
+        if(ControlSensoresActivity.estadoPulsador == true)
+                crearNotificacion(context);
 
     }
 

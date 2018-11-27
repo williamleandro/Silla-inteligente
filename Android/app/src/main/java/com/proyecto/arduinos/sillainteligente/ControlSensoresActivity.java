@@ -26,7 +26,6 @@ import android.util.Log;
 import android.widget.TextView;
 
 import com.proyecto.arduinos.sillainteligente.adaptadores.ViewPagerAdapter;
-import com.proyecto.arduinos.sillainteligente.hilos.HiloAlarma;
 import com.proyecto.arduinos.sillainteligente.utilitarios.AlarmReceiver;
 import com.proyecto.arduinos.sillainteligente.utilitarios.Constante;
 import com.proyecto.arduinos.sillainteligente.fragments.CoolerFragment;
@@ -35,7 +34,6 @@ import com.proyecto.arduinos.sillainteligente.hilos.HiloEntrada;
 import com.proyecto.arduinos.sillainteligente.hilos.HiloSalida;
 
 import java.io.IOException;
-import java.util.GregorianCalendar;
 import java.util.UUID;
 
 public class ControlSensoresActivity extends AppCompatActivity implements SensorEventListener {
@@ -73,7 +71,6 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
     private Handler bluetoothHandler;
     private HiloEntrada hiloEntrada;
     private HiloSalida hiloSalida;
-    private HiloAlarma hiloAlarma;
     /***************************************/
 
     /****** INICIO ATRIBUTOS ACELEROMETRO ******/
@@ -99,6 +96,7 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
     /****** ATRIBUTOS PASOS/PULSADOR/ALARMA *****/
     public static boolean estadoPulsador = false;
     public static boolean primerPulso = true;
+    public static int contadorPasos = 0;
     private static final int INTERVALO_TIME = 1000*15; //DEFINO 15 segundos
     private static final int ALARM_REQUEST_CODE = 133; //Alarm Request Code
     private PendingIntent pendingIntent;
@@ -140,6 +138,10 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         this.bluetoothHandler = HandlerMsg(); //Handler
 
         this.notificationManagerCompat = NotificationManagerCompat.from(this);
+
+        //DECLARACION ALARMA
+        Intent alarmIntent = new Intent(ControlSensoresActivity.this, AlarmReceiver.class);
+        this.pendingIntent = PendingIntent.getBroadcast(ControlSensoresActivity.this, ALARM_REQUEST_CODE, alarmIntent, 0);
     }
 
     private void crearAdaptador() {
@@ -182,7 +184,6 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         // Creo Hilos de entrada y salida.
         this.hiloEntrada = new HiloEntrada(this.socketBT, bluetoothHandler);
         this.hiloSalida = new HiloSalida(this.socketBT);
-        this.hiloAlarma = new HiloAlarma(this.socketBT, bluetoothHandler);
 
         // Inicio la ejecución de hilos.
         hiloEntrada.start();
@@ -195,7 +196,6 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         this.sensorManager.registerListener(this, this.sensorGiroscopio, SensorManager.SENSOR_DELAY_NORMAL);
         this.sensorManager.registerListener(this, this.sensorContadorPasos, SensorManager.SENSOR_DELAY_NORMAL);
         this.sensorManager.registerListener(this, this.sensorLuminosidad, SensorManager.SENSOR_DELAY_NORMAL);
-
     }
 
     //Crea el socket basado en el UUID de la maquina a conectar.
@@ -320,22 +320,18 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
                             estadoPulsador = true;
 
                             if(primerPulso) {
-                                hiloAlarma.start();
+                                alarmaInicio();
                                 primerPulso = false;
                             }
                         }
 
                         if(dataInPrint.equals(Constante.SEÑAL_ESTPUL_ARD_L)) {
                             estadoPulsador = false;
+                            alarmaDetener();
                             primerPulso = true;
                         }
 
                     }
-                }
-
-                if(msg.what == 20) {
-                    if(estadoPulsador)
-                        enviarACanalAlarm();
                 }
                 recDataString.delete(0, recDataString.length());
             }
@@ -347,6 +343,16 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
         if(this.valorLumninosidad < 1.5 && !estadoLED) {
             enviarACanalLED();
         }
+    }
+
+    public void alarmaInicio() {
+        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);//get instance of alarm manager
+        manager.set(AlarmManager.RTC_WAKEUP, (System.currentTimeMillis()+INTERVALO_TIME), pendingIntent);//set alarm manager with entered timer by converting into milliseconds
+    }
+
+    public void alarmaDetener() {
+        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        manager.cancel(pendingIntent);
     }
 
     @Override
@@ -366,7 +372,7 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
             }
 
             if(event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {  //SI CAMBIO EL VALOR DE CONTADOR DE PASOS
-                   // this.contadorPasos++;
+                   this.contadorPasos++;
             }
         }
     }
@@ -426,19 +432,6 @@ public class ControlSensoresActivity extends AppCompatActivity implements Sensor
 
         notificationManagerCompat.notify(1, notification);
     }
-
-    public void enviarACanalAlarm() {
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_NOTIF_LED_ID_2)
-                .setSmallIcon(R.drawable.run)
-                .setContentTitle("Aviso - Inactividad")
-                .setContentText("Estuvo mucho tiempo inactivo.")
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setCategory(NotificationCompat.CATEGORY_MESSAGE).build();
-
-        notificationManagerCompat.notify(1, notification);
-    }
-
-
 
     @Override
     protected void onStop() {
